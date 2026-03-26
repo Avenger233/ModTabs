@@ -30,7 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-@Mod(ModTabs.MOD_ID)
+@Mod(value = ModTabs.MOD_ID, dist = Dist.CLIENT)
 public class ModTabs
 {
     public static final String MOD_ID = "modtabs";
@@ -52,22 +52,7 @@ public class ModTabs
         // Initialize mod integration manager
         ModIntegrationManager.detectLoadedMods();
 
-        // Register network packets
-        modEventBus.addListener(this::registerNetworking);
-
         // Event handlers removed - now using proper Patchouli synchronization
-    }
-
-    private void registerNetworking(net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent event) {
-        var registrar = event.registrar(MOD_ID).versioned("1.0");
-
-        registrar.playToServer(
-            vodmordia.modtabs.network.TomeConvertPayload.TYPE,
-            vodmordia.modtabs.network.TomeConvertPayload.STREAM_CODEC,
-            vodmordia.modtabs.network.TomeConvertHandler::handle
-        );
-
-        LOGGER.info("Registered ModTabs network packets");
     }
 
     // Old config event handlers removed - MidnightConfig handles reloading automatically

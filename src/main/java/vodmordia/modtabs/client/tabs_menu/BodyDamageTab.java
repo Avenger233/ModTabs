@@ -10,7 +10,6 @@ import net.minecraft.world.item.Items;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import sfiomn.legendarysurvivaloverhaul.client.ClientHooks;
 import vodmordia.modtabs.ModTabs;
 import vodmordia.modtabs.api.tabs_menu.ConfigurableItemTab;
 import vodmordia.modtabs.api.tabs_menu.TabConfig;
@@ -20,7 +19,6 @@ import vodmordia.modtabs.config.Config;
 import vodmordia.modtabs.integration.ModIntegration;
 import vodmordia.modtabs.integration.ModIntegrationManager;
 
-import static sfiomn.legendarysurvivaloverhaul.config.Config.Baked.localizedBodyDamageEnabled;
 
 @TabConfig(configKey = "bodyDamageTab", defaultEnabled = true, defaultOrder = 0)
 public class BodyDamageTab extends ConfigurableItemTab {
@@ -46,23 +44,45 @@ public class BodyDamageTab extends ConfigurableItemTab {
 
     @Override
     public void openTargetScreen(Player player) {
-        if (ModIntegrationManager.isModLoaded(ModIntegration.LEGENDARY_SURVIVAL_OVERHAUL) && localizedBodyDamageEnabled)
-            ClientHooks.openBodyHealthScreen(player);
+        if (!ModIntegrationManager.isModLoaded(ModIntegration.LEGENDARY_SURVIVAL_OVERHAUL) || !isLocalizedBodyDamageEnabled()) {
+            return;
+        }
+
+        try {
+            Class<?> hooksClass = Class.forName("sfiomn.legendarysurvivaloverhaul.client.ClientHooks");
+            Method openMethod = hooksClass.getMethod("openBodyHealthScreen", Player.class);
+            openMethod.invoke(null, player);
+        } catch (Exception e) {
+            ModTabs.LOGGER.debug("Failed to open LSO body health screen via reflection", e);
+        }
     }
 
     @Override
     public boolean isEnabled(Player player) {
-        return ModIntegrationManager.isModLoaded(ModIntegration.LEGENDARY_SURVIVAL_OVERHAUL) && Config.Baked.bodyDamageTabEnabled && localizedBodyDamageEnabled;
+        return ModIntegrationManager.isModLoaded(ModIntegration.LEGENDARY_SURVIVAL_OVERHAUL)
+            && Config.Baked.bodyDamageTabEnabled
+            && isLocalizedBodyDamageEnabled();
     }
 
 
     @Override
     public boolean isCurrentlyUsed(Screen currentScreen) {
-        if (!localizedBodyDamageEnabled) return false;
+        if (!isLocalizedBodyDamageEnabled()) return false;
         try {
             Class<?> bodyHealthScreenClass = Class.forName("sfiomn.legendarysurvivaloverhaul.client.screens.BodyHealthScreen");
             return bodyHealthScreenClass.isInstance(currentScreen);
         } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+
+    private static boolean isLocalizedBodyDamageEnabled() {
+        try {
+            Class<?> bakedClass = Class.forName("sfiomn.legendarysurvivaloverhaul.config.Config$Baked");
+            Field enabledField = bakedClass.getField("localizedBodyDamageEnabled");
+            return enabledField.getBoolean(null);
+        } catch (Exception e) {
             return false;
         }
     }
