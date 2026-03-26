@@ -5,35 +5,49 @@
 # This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
 # For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
 
-name: Build & Publish Mod
+name: Build Mod (Stable)
 
 on:
   push:
   workflow_dispatch:
+
+# ✅ 强制使用 Node 24（避免未来弃用问题）
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # 📥 拉代码
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      # ☕ 安装 Java 21（NeoForge 必须）
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
+          cache: gradle
 
+      # 🔧 给 gradlew 权限
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      # ✅ 构建 mod（核心）
+      # 📦 构建（带详细日志，方便排错）
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build --stacktrace
 
-      # ✅ 上传 jar（你最需要的）
-      - name: Upload jar
+      # 📂 上传构建产物（jar）
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ModTabs
+          name: ModTabs-Client
           path: build/libs/*.jar
+
+      # 🧹 防止缓存问题（可选但推荐）
+      - name: Clean Gradle Cache
+        if: always()
+        run: ./gradlew clean
