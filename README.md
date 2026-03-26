@@ -1,3 +1,5 @@
+此版本为仅客户端加载
+
 # Mod Tabs
 
 A Minecraft mod that adds a tab menu to the inventory screen for quick navigation between different mod interfaces.
