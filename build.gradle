@@ -146,7 +146,6 @@ dependencies {
 
     implementation("curse.maven:curios-309927:6529130")
 
-    implementation(name: 'legendarysurvivaloverhaul-1.21.1-2.3.22', version: null)
     implementation("curse.maven:reskillable-reimagined-1170464:6599973")
     implementation("curse.maven:architectury-api-419699:5786327")
     implementation("curse.maven:ftb-quests-forge-289412:6721642")
